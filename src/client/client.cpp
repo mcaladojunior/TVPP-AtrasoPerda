@@ -22,7 +22,7 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
 			string connectorStrategy, unsigned int minimalBandwidthToBeMyIN,
 			int timeToRemovePeerOutWorseBand, string chunkSchedulerStrategy,
             string messageSendScheduler, string messageReceiveScheduler,
-			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree)
+			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree, unsigned int delayToSend, double lossPercentage)
 {
     cout <<"Starting Client Version["<<VERSION<<"]" <<endl;
     Bootstrap_IP = host_ip;
@@ -50,6 +50,9 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
     this->tipOffsetTime = tipOffsetTime;
     this->configurarBootID = true;
     this->timeToRemovePeerOutWorseBand = timeToRemovePeerOutWorseBand;
+
+    this->delayToSend = delayToSend;
+    this->lossPercentage = lossPercentage;
 
     if (limitDownload >= 0)
         this->leakyBucketDownload = new LeakyBucket(limitDownload);
