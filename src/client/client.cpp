@@ -51,8 +51,9 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
     this->configurarBootID = true;
     this->timeToRemovePeerOutWorseBand = timeToRemovePeerOutWorseBand;
 
-    this->delayToSend = delayToSend;
-    this->lossPercentage = lossPercentage;
+    this->delayToSend = delayToSend; // Atraso no envio de mensagens em milissegundos. (0 ~ 500)
+    this->lossPercentage = lossPercentage; // Porcentagem de perda de pacote. (0.0 ~ 100.0)
+    this->chunksLost = 0; // Contador de perdas de mensagens.
 
     if (limitDownload >= 0)
         this->leakyBucketDownload = new LeakyBucket(limitDownload);
@@ -1675,6 +1676,8 @@ void Client::UDPReceive()
 void Client::UDPSend()
 {
     float msgAge = 0.0;
+    bool lose = false;
+
     while(true)
     {
         AddressedMessage* aMessage = udp->GetNextMessageToSend();
@@ -1683,29 +1686,73 @@ void Client::UDPSend()
             msgAge = aMessage->GetAge();
             if (msgAge < 0.5) // If message older than 500 ms
             {
-                if (delayToSend > 0)
+                //If lossPercentage was set up send a message with percentage of loss:
+                if(lossPercentage > 0.0) 
                 {
-                    while(msgAge < (delayToSend/1000)) 
+                    lose = (rand()%2 == 0);
+                    if(!lose || (chunksLost > ((lossPercentage/100)*chunksSent))) 
                     {
-                        //Wait...
-                        msgAge = aMessage->GetAge();
+                        if (delayToSend > 0)
+                        {
+                            while(msgAge < (delayToSend/1000)) 
+                            {
+                                //Wait...
+                                msgAge = aMessage->GetAge();
+                            }
+                        }
+                        
+                        if (leakyBucketUpload) //If do exist leaky bucket 
+                        {
+                            //If only data passes the leaky bucket
+                            if (!XPConfig::Instance()->GetBool("leakyBucketDataFilter") || aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
+                                while (!leakyBucketUpload->DecToken(aMessage->GetMessage()->GetSize())); //while leaky bucket cannot provide
+                        }
+                        udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                        /*ECM Correção no controle de banda.
+                         * Inicialmente, a variável chunksSent estava sendo identada quando era chegava um pedido por chunk, e não
+                         * quando efetivamente o chunck era enviado. Assim, movemos a identação para esse código, que configura realiza o controle.
+                         * Neste metodo, inserimos apenas as duas linhas que se seguem.
+                         */
+                        if (aMessage->GetMessage()->GetOpcode() == OPCODE_DATA)
+                           chunksSent++;
+                    }
+                    else 
+                    {
+                        // Ocorreu uma perda aleatória dentro da porcentagem passada por parâmetro.
+                        chunksLost++;
                     }
                 }
-                
-                if (leakyBucketUpload) //If do exist leaky bucket 
+                else
                 {
-                    //If only data passes the leaky bucket
-                    if (!XPConfig::Instance()->GetBool("leakyBucketDataFilter") || aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
-                        while (!leakyBucketUpload->DecToken(aMessage->GetMessage()->GetSize())); //while leaky bucket cannot provide
-                }
-                udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
-                /*ECM Correção no controle de banda.
-                 * Inicialmente, a variável chunksSent estava sendo identada quando era chegava um pedido por chunk, e não
-                 * quando efetivamente o chunck era enviado. Assim, movemos a identação para esse código, que configura realiza o controle.
-                 * Neste metodo, inserimos apenas as duas linhas que se seguem.
-                 */
-                if (aMessage->GetMessage()->GetOpcode() == OPCODE_DATA)
-                   chunksSent++;
+                    if (delayToSend > 0)
+                    {
+                        while(msgAge < (delayToSend/1000)) 
+                        {
+                            //Wait...
+                            msgAge = aMessage->GetAge();
+                        }
+                    }
+                    
+                    if (leakyBucketUpload) //If do exist leaky bucket 
+                    {
+                        //If only data passes the leaky bucket
+                        if (!XPConfig::Instance()->GetBool("leakyBucketDataFilter") || aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
+                            while (!leakyBucketUpload->DecToken(aMessage->GetMessage()->GetSize())); //while leaky bucket cannot provide
+                    }
+                    udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                    /*ECM Correção no controle de banda.
+                     * Inicialmente, a variável chunksSent estava sendo identada quando era chegava um pedido por chunk, e não
+                     * quando efetivamente o chunck era enviado. Assim, movemos a identação para esse código, que configura realiza o controle.
+                     * Neste metodo, inserimos apenas as duas linhas que se seguem.
+                     */
+                    if (aMessage->GetMessage()->GetOpcode() == OPCODE_DATA)
+                       chunksSent++;
+                } 
+            }
+            else 
+            {
+                // Ocorreu uma perda por "timeout".
+                chunksLost++;
             }
         }
     }

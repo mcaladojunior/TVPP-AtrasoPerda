@@ -78,7 +78,7 @@ class Client
             string disconnectorStrategyIn, string disconnectorStrategyOut, int quantityDisconnect,
 			string connectorStrategy, unsigned int minimalBandwidthToBeMyIN, int timeToRemovePeerOutWorseBand,
 			string chunkSchedulerStrategy, string messageSendScheduler, string messageReceptionScheduler,
-			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree);
+			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree, unsigned int delayToSend, double lossPercentage);
         virtual void Ping();
         void CyclicTimers();
         void PeerCtoPeerA();
@@ -208,6 +208,10 @@ class Client
         int chunksMissed, chunksPlayed;
         unsigned int downloadPerSecDone, uploadPerSecDone;
         list<int> triesPerRequest;
+
+        unsigned int delayToSend; // Atraso no envio de mensagens em milissegundos. (0 ~ 500)
+        double lossPercentage; // Porcentagem de perda de pacote. (0.0 ~ 100.0)
+        unsigned int chunksLost; // Contador de perdas de mensagens.
 
         friend class ClientTCPServer;
 };
