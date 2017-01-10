@@ -54,7 +54,6 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
     //Atraso.
     this->timeIntervalToSend = timeIntervalToSend;
     this->classQuantityToSend = classQuantityToSend;
-    std::queue<AddressedMessage*> classToSendArray[classQuantityToSend];
 
     if (limitDownload >= 0)
         this->leakyBucketDownload = new LeakyBucket(limitDownload);
@@ -1677,6 +1676,7 @@ void Client::UDPReceive()
 void Client::UDPSend()
 {
     int msgClass = 0;
+    std::queue<AddressedMessage*> classToSendArray[classQuantityToSend];
 
     while(true)
     {
