@@ -1726,7 +1726,7 @@ void Client::UDPSend()
 
                 usleep(timeIntervalToSend*1000);
                 
-                while(classToSendArray[i].size > 0) 
+                while(classToSendArray[i].size() > 0) 
                 {
                     aMessage = classToSendArray[i].front();                    
                     udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
