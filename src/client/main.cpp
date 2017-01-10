@@ -81,8 +81,9 @@ int main (int argc, char* argv[])
     string messageSendScheduler = "FIFO";
     string messageReceiveScheduler = "FIFO";
 
-    unsigned int delayToSend = 0;
-    double lossPercentage = 0.0;
+    //Atraso
+    unsigned int timeIntervalToSend = 0; 
+    unsigned int classQuantityToSend = 0;
 
     int optind=2;
     string arg1 = argv[1];
@@ -143,8 +144,9 @@ int main (int argc, char* argv[])
             cout <<"  --leakyBucketDataFilter       forces data packets only to pass through upload leaky bucket"<<endl;
             cout <<"  --serverCandidate             permits that peer becomes a auxiliary server on parallel network"<<endl;
             cout <<"                  ***           "<<endl;
-            cout <<"  --delayToSend [0-500]         define a delay to send messages."<<endl;
-            cout <<"  --lossPercentage [0.0-100.0]  define a loss percentage of messages."<<endl;
+            //Atraso
+            cout <<"  --timeIntervalToSend         define an interval of time to send messages."<<endl; 
+            cout <<"  --classQuantityToSend        define a number of classes to send messages."<<endl;
             exit(1);
         }
         else
@@ -335,15 +337,15 @@ int main (int argc, char* argv[])
         {
             XPConfig::Instance()->SetBool("serverCandidate", true);
         }
-        else if (swtc=="--delayToSend")
+        else if (swtc=="--timeIntervalToSend") //Atraso
         {
             optind++;
-            delayToSend = atoi(argv[optind]);    
+            timeIntervalToSend = atoi(argv[optind]);    
         }
-        else if (swtc=="--lossPercentage")
+        else if (swtc=="--classQuantityToSend") //Atraso
         {
             optind++;
-            lossPercentage = atof(argv[optind]);    
+            classQuantityToSend = atoi(argv[optind]);    
         }
         else
         {
@@ -358,7 +360,7 @@ int main (int argc, char* argv[])
                                 maxPartnersIn, maxPartnersOut, windowOfInterest, requestLimit, ttlIn, ttlOut, maxRequestAttempt, tipOffsetTime, limitDownload, limitUpload,
                                 disconnectorStrategyIn, disconnectorStrategyOut, quantityDisconnect, connectorStrategy, minimalBandwidthToBeMyIN, timeToRemovePeerOutWorseBand,
 								chunkSchedulerStrategy, messageSendScheduler, messageReceiveScheduler, maxPartnersOutFREE, outLimitToSeparateFree,
-                                delayToSend, lossPercentage);
+                                timeIntervalToSend, classQuantityToSend);
     
     boost::thread TPING(boost::bind(&Client::Ping, &clientInstance));
     boost::thread TUDPSTART(boost::bind(&Client::UDPStart, &clientInstance));

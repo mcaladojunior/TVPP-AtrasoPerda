@@ -22,7 +22,7 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
 			string connectorStrategy, unsigned int minimalBandwidthToBeMyIN,
 			int timeToRemovePeerOutWorseBand, string chunkSchedulerStrategy,
             string messageSendScheduler, string messageReceiveScheduler,
-			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree, unsigned int delayToSend, double lossPercentage)
+			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree, unsigned int timeIntervalToSend, unsigned int classQuantityToSend)
 {
     cout <<"Starting Client Version["<<VERSION<<"]" <<endl;
     Bootstrap_IP = host_ip;
@@ -51,8 +51,9 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
     this->configurarBootID = true;
     this->timeToRemovePeerOutWorseBand = timeToRemovePeerOutWorseBand;
 
-    this->delayToSend = delayToSend;
-    this->lossPercentage = lossPercentage;
+    //Atraso.
+    this->timeIntervalToSend = timeIntervalToSend;
+    this->classQuantityToSend = classQuantityToSend;
 
     if (limitDownload >= 0)
         this->leakyBucketDownload = new LeakyBucket(limitDownload);
@@ -1687,6 +1688,7 @@ void Client::UDPSend()
                     if (!XPConfig::Instance()->GetBool("leakyBucketDataFilter") || aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
                         while (!leakyBucketUpload->DecToken(aMessage->GetMessage()->GetSize())); //while leaky bucket cannot provide
                 }
+
                 udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
                 /*ECM Correção no controle de banda.
                  * Inicialmente, a variável chunksSent estava sendo identada quando era chegava um pedido por chunk, e não
