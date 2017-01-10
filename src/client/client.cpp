@@ -54,6 +54,7 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
     //Atraso.
     this->timeIntervalToSend = timeIntervalToSend;
     this->classQuantityToSend = classQuantityToSend;
+    std::queue<AddressedMessage*> classToSendArray[classQuantityToSend];
 
     if (limitDownload >= 0)
         this->leakyBucketDownload = new LeakyBucket(limitDownload);
@@ -1675,29 +1676,64 @@ void Client::UDPReceive()
 
 void Client::UDPSend()
 {
+    int msgClass = 0;
+
     while(true)
     {
-        AddressedMessage* aMessage = udp->GetNextMessageToSend();
-        if (aMessage)
+        if(timeIntervalToSend == 0) 
         {
-            if (aMessage->GetAge() < 0.5) // If message older than 500 ms
+            AddressedMessage* aMessage = udp->GetNextMessageToSend();
+            if (aMessage)
             {
-                if (leakyBucketUpload) //If do exist leaky bucket 
+                if (aMessage->GetAge() < 0.5) // If message older than 500 ms
                 {
-                    //If only data passes the leaky bucket
-                    if (!XPConfig::Instance()->GetBool("leakyBucketDataFilter") || aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
-                        while (!leakyBucketUpload->DecToken(aMessage->GetMessage()->GetSize())); //while leaky bucket cannot provide
+                    if (leakyBucketUpload) //If do exist leaky bucket 
+                    {
+                        //If only data passes the leaky bucket
+                        if (!XPConfig::Instance()->GetBool("leakyBucketDataFilter") || aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
+                            while (!leakyBucketUpload->DecToken(aMessage->GetMessage()->GetSize())); //while leaky bucket cannot provide
+                    }
+
+                    udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                    /*ECM Correção no controle de banda.
+                     * Inicialmente, a variável chunksSent estava sendo identada quando era chegava um pedido por chunk, e não
+                     * quando efetivamente o chunck era enviado. Assim, movemos a identação para esse código, que configura realiza o controle.
+                     * Neste metodo, inserimos apenas as duas linhas que se seguem.
+                     */
+                    if (aMessage->GetMessage()->GetOpcode() == OPCODE_DATA)
+                       chunksSent++;
+                }
+            }
+        }
+        else 
+        {
+            for(int i = 0; i < classQuantityToSend; i++)
+            {
+                AddressedMessage* aMessage = udp->GetNextMessageToSend();
+                while(aMessage) 
+                {
+                    if(aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
+                    {
+                        msgClass = rand()%classQuantityToSend;
+                        classToSendArray[msgClass].push(aMessage);
+                    }
+                    else 
+                    {
+                        udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                    }
+                    aMessage = udp->GetNextMessageToSend();
                 }
 
-                udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
-                /*ECM Correção no controle de banda.
-                 * Inicialmente, a variável chunksSent estava sendo identada quando era chegava um pedido por chunk, e não
-                 * quando efetivamente o chunck era enviado. Assim, movemos a identação para esse código, que configura realiza o controle.
-                 * Neste metodo, inserimos apenas as duas linhas que se seguem.
-                 */
-                if (aMessage->GetMessage()->GetOpcode() == OPCODE_DATA)
-                   chunksSent++;
+                usleep(timeIntervalToSend*1000);
+                
+                while(classToSendArray[i].size > 0) 
+                {
+                    aMessage = classToSendArray[i].front();                    
+                    udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                    classToSendArray[i].pop();                    
+                }
             }
+
         }
     }
 }

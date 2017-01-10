@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <list>
 #include <ctime>
+#include <queue> // Fila para as classes de atraso.
+#include <array> // Array de classes de atraso.
 
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
