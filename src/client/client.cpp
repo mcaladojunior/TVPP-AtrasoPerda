@@ -1674,24 +1674,13 @@ void Client::UDPReceive()
 
 void Client::UDPSend()
 {
-    float msgAge = 0.0;
     while(true)
     {
         AddressedMessage* aMessage = udp->GetNextMessageToSend();
         if (aMessage)
         {
-            msgAge = aMessage->GetAge();
-            if (msgAge < 0.5) // If message older than 500 ms
+            if (aMessage->GetAge() < 0.5) // If message older than 500 ms
             {
-                if (delayToSend > 0)
-                {
-                    while(msgAge < (delayToSend/1000)) 
-                    {
-                        //Wait...
-                        msgAge = aMessage->GetAge();
-                    }
-                }
-                
                 if (leakyBucketUpload) //If do exist leaky bucket 
                 {
                     //If only data passes the leaky bucket
