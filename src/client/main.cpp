@@ -83,7 +83,7 @@ int main (int argc, char* argv[])
 
     //Atraso
     unsigned int timeIntervalToSend = 0; 
-    unsigned int classQuantityToSend = 0;
+    int classQuantityToSend = 0;
 
     int optind=2;
     string arg1 = argv[1];

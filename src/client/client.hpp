@@ -147,8 +147,8 @@ class Client
 
         // Atraso.
         unsigned int timeIntervalToSend; 
-        unsigned int classQuantityToSend;
-        
+        int classQuantityToSend;
+
 
 		//ECM
 		Disconnector* disconnectorIn;

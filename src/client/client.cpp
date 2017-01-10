@@ -22,7 +22,7 @@ void Client::ClientInit(char *host_ip, string TCP_server_port, string udp_port, 
 			string connectorStrategy, unsigned int minimalBandwidthToBeMyIN,
 			int timeToRemovePeerOutWorseBand, string chunkSchedulerStrategy,
             string messageSendScheduler, string messageReceiveScheduler,
-			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree, unsigned int timeIntervalToSend, unsigned int classQuantityToSend)
+			int maxPartnersOutFREE, unsigned int outLimitToSeparateFree, unsigned int timeIntervalToSend, int classQuantityToSend)
 {
     cout <<"Starting Client Version["<<VERSION<<"]" <<endl;
     Bootstrap_IP = host_ip;
