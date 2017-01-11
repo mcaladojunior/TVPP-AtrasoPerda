@@ -1719,7 +1719,10 @@ void Client::UDPSend()
                     }
                     else 
                     {
-                        udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                        if (aMessage->GetAge() < 0.5) // If message older than 500 ms
+                        {
+                            udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                        }
                     }
                     aMessage = udp->GetNextMessageToSend();
                 }
@@ -1728,8 +1731,14 @@ void Client::UDPSend()
                 
                 while(classToSendArray[i].size() > 0) 
                 {
-                    aMessage = classToSendArray[i].front();                    
-                    udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                    aMessage = classToSendArray[i].front(); 
+
+                    if (aMessage->GetAge() < 0.5) // If message older than 500 ms
+                    {                   
+                        udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
+                        chunksSent++;
+                    }
+
                     classToSendArray[i].pop();                    
                 }
             }

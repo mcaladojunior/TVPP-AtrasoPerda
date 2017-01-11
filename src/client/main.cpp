@@ -359,7 +359,7 @@ int main (int argc, char* argv[])
                                 peerPort, streamingPort, mode, bufferSize, 
                                 maxPartnersIn, maxPartnersOut, windowOfInterest, requestLimit, ttlIn, ttlOut, maxRequestAttempt, tipOffsetTime, limitDownload, limitUpload,
                                 disconnectorStrategyIn, disconnectorStrategyOut, quantityDisconnect, connectorStrategy, minimalBandwidthToBeMyIN, timeToRemovePeerOutWorseBand,
-								chunkSchedulerStrategy, messageSendScheduler, messageReceiveScheduler, maxPartnersOutFREE, outLimitToSeparateFree,
+                                chunkSchedulerStrategy, messageSendScheduler, messageReceiveScheduler, maxPartnersOutFREE, outLimitToSeparateFree,
                                 timeIntervalToSend, classQuantityToSend);
     
     boost::thread TPING(boost::bind(&Client::Ping, &clientInstance));
