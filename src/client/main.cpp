@@ -360,9 +360,12 @@ int main (int argc, char* argv[])
                                 maxPartnersIn, maxPartnersOut, windowOfInterest, requestLimit, ttlIn, ttlOut, maxRequestAttempt, tipOffsetTime, limitDownload, limitUpload,
                                 disconnectorStrategyIn, disconnectorStrategyOut, quantityDisconnect, connectorStrategy, minimalBandwidthToBeMyIN, timeToRemovePeerOutWorseBand,
 <<<<<<< HEAD
+<<<<<<< HEAD
                                 chunkSchedulerStrategy, messageSendScheduler, messageReceiveScheduler, maxPartnersOutFREE, outLimitToSeparateFree,
                                 timeIntervalToSend, classQuantityToSend);
 =======
+=======
+>>>>>>> parent of dc4ffd3... Inserção dos parâmetros - corrigido
 								chunkSchedulerStrategy, messageSendScheduler, messageReceiveScheduler, maxPartnersOutFREE, outLimitToSeparateFree
                                 delayToSend, lossPercentage);
 >>>>>>> parent of dc4ffd3... Inserção dos parâmetros - corrigido
