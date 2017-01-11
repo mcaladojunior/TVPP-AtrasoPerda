@@ -1675,12 +1675,12 @@ void Client::UDPReceive()
 
 void Client::UDPSend()
 {
-    int msgClass = 0;
-    std::queue<AddressedMessage*> classToSendArray[classQuantityToSend];
+    int msgClass = 0; //Var. para classificar as mensagens.
+    std::queue<AddressedMessage*> classToSendArray[classQuantityToSend]; //Estrutura (Fila) p/ as classes de mensagens.
 
     while(true)
     {
-        if(timeIntervalToSend == 0) 
+        if(timeIntervalToSend == 0) //Se o parâmetro não foi setado, envia normal...
         {
             AddressedMessage* aMessage = udp->GetNextMessageToSend();
             if (aMessage)
@@ -1705,13 +1705,14 @@ void Client::UDPSend()
                 }
             }
         }
-        else 
+        else //Envio com atraso: 
         {
-            for(int i = 0; i < classQuantityToSend; i++)
+            for(int i = 0; i < classQuantityToSend; i++) // Para cada classe de msgs...
             {
                 AddressedMessage* aMessage = udp->GetNextMessageToSend();
-                while(aMessage) 
+                while(aMessage) // Enquanto tiver msgs na fila principal...
                 {
+                    // Se a msg foi de dados agrupa randômico..
                     if(aMessage->GetMessage()->GetOpcode() == OPCODE_DATA) 
                     {
                         msgClass = rand()%classQuantityToSend;
@@ -1719,17 +1720,19 @@ void Client::UDPSend()
                     }
                     else 
                     {
+                        // Se a msg for de controle e não estourar o tempo, envia...
                         if (aMessage->GetAge() < 0.5) // If message older than 500 ms
                         {
                             udp->Send(aMessage->GetAddress(),aMessage->GetMessage()->GetFirstByte(),aMessage->GetMessage()->GetSize());
                         }
                     }
+
                     aMessage = udp->GetNextMessageToSend();
                 }
 
-                usleep(timeIntervalToSend*1000);
+                usleep(timeIntervalToSend*1000); // Tempo de espera
                 
-                while(classToSendArray[i].size() > 0) 
+                while(classToSendArray[i].size() > 0) // Enquanto tiver msgs na classe "i", envia.
                 {
                     aMessage = classToSendArray[i].front(); 
 
@@ -1742,7 +1745,6 @@ void Client::UDPSend()
                     classToSendArray[i].pop();                    
                 }
             }
-
         }
     }
 }
